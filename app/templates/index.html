@@ -5,7 +5,7 @@
 <div class="header">
   <h1 class="title">SEARCH BY IMAGE</h1>
 </div>
-<hr/>
+<hr />
 
 <div class="display">
   <div class="left-pane">
@@ -14,25 +14,32 @@
     <div id="select" class="image-select">
       Select & Search
     </div>
+    <div id="select-metric">
+      <div>Choose Metric</div>
+      <select id="metric">
+        <!--  name=metrics, method="GET" action="/"  -->
+        {% for metric in metrics %}
+        <option value="{{  metric  }}" {% if metric=="chi2" %} selected {% endif %}>{{ metric }}</option>"
+        {% endfor %}
+      </select>
+    </div>
   </div>
   <div class="right-pane">
     <div id="results" class="search-results">
-
     </div>
   </div>
 </div>
 <!-- The Modal -->
 <div id="modal" class="modal-display">
 
-    <!-- Modal content -->
-    <div class="modal-content">
-        <span class="close">&times;</span>
-        <div class="modal-images-list">
+  <!-- Modal content -->
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <div class="modal-images-list">
 
-        </div>
     </div>
-      
+  </div>
+
 </div>
 
 {% endblock %}
-
