@@ -4,26 +4,28 @@ import csv
 from searcher import Searcher
 import seaborn as sn
 import matplotlib.pyplot as plt
-
-
-CLASS_SAMPLE_SIZE = 3
-
+import random
+import config
 
 class Evaluator:
     def __init__(self, indexPath):
         # store our index path
         self.indexPath = indexPath
 
-    def evaluate(self, queryFeatures, limit=10):
+    def evaluate(self, queryFeatures, limit=10, image_in_index=False):
         # initialize Searcher
         searcher = Searcher(self.indexPath)
 
         # retrieve results
-        results = searcher.search(queryFeatures=queryFeatures, limit=limit)
+        # If query image is indexed, it will be found first with distance = 0.
+        if image_in_index:
+            results = searcher.search(queryFeatures=queryFeatures, limit=limit + 1)[1:]
+        else:
+            results = searcher.search(queryFeatures=queryFeatures, limit=limit)
 
         return strip_classes(results)
 
-    def evaluate_all(self, limit=10):
+    def evaluate_all(self, image_names, limit=10, image_in_index=False):
         # initialize Searcher
         searcher = Searcher(self.indexPath)
 
@@ -36,23 +38,27 @@ class Evaluator:
             actual_classes = []
 
             df = pd.read_csv(self.indexPath, header=None)
+            df = df[df[0].isin(image_names)]
+            print(df)
             df[0] = df[0].transform(lambda x: x.rsplit('_', 1)[0])
 
-            # Take stratified sample
-            for _, row in df.groupby(0, group_keys=False).apply(lambda x: x.sample(min(len(x), CLASS_SAMPLE_SIZE))).iterrows():
-                retrieved_classes += self.evaluate(row[1:], limit+1)[1:]  # Retrieve limit+1 images, because first
-                                                                           # image is always the query image
+            for _, row in df.iterrows():
+                print(row[0])
+                retrieved_classes += self.evaluate(row[1:], limit, image_in_index=image_in_index)
                 actual_classes += [row[0]] * limit
+
+            # # Take stratified sample
+            # for _, row in df.groupby(0, group_keys=False).apply(lambda x: x.sample(min(len(x), class_sample_size))).iterrows():
+            #     retrieved_classes += self.evaluate(row[1:], limit, image_in_index=image_in_index)
+            #     actual_classes += [row[0]] * limit
 
         data = {'class_actual': actual_classes,
                 'class_retrieved': retrieved_classes
                 }
 
         df = pd.DataFrame(data, columns=['class_actual', 'class_retrieved'])
-        confusion_matrix = pd.crosstab(df['class_actual'], df['class_retrieved'], rownames=['Actual'], colnames=['Retrieved'])
 
-
-        return confusion_matrix
+        return df
 
 
 def strip_classes(results):
@@ -63,11 +69,34 @@ def strip_classes(results):
 
     return retrieved_classes
 
-
+# The main method is for testing purposes
+# I tried to calculate all descriptors for our image set
+#           to obtain a training set for kmeans (BOV),
+#           but I got a None Error in the middle of something
 if __name__ == '__main__':
+    classes = config.LULC_CLASSES_10
+
+    random.seed(42)
+    images_numbers = random.sample(range(1, 700), 10)
+
+    image_names = []
+    for lulc_class, number in [(a, b) for a in classes for b in images_numbers]:
+        if number < 10:
+            num_string = '00' + str(number)
+        elif number < 100:
+            num_string = '0' + str(number)
+        else:
+            num_string = str(number)
+        image_names.append(lulc_class + '_' + num_string + '.jpg')
+
+    print(image_names)
+
     evaluator = Evaluator('/home/till/PycharmProjects/irei_image_search/app/my_index.csv')
 
-    cm = evaluator.evaluate_all(limit=10)
+    df = evaluator.evaluate_all(image_names, limit=10, image_in_index=True)
 
+    df.to_csv('evaluation_10_lulc_colordescriptor.csv')
+
+    cm = pd.crosstab(df['class_actual'], df['class_retrieved'], rownames=['Actual'], colnames=['Retrieved'])
     sn.heatmap(cm, annot=True)
     plt.show()

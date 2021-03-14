@@ -5,3 +5,6 @@ LULC_CLASSES = ['airplane', 'airport', 'baseball_diamond', 'basketball_court', '
            'railway', 'railway_station', 'rectangular_farmland', 'river', 'roundabout', 'runway', 'sea_ice', 'ship',
            'snowberg', 'sparse_residential', 'stadium', 'storage_tank', 'tennis_court', 'terrace',
            'thermal_power_station', 'wetland']
+
+LULC_CLASSES_10 = ['industrial_area', 'beach', 'lake', 'circular_farmland', 'sparse_residential',
+                   'cloud', 'mountain', 'dense_residential', 'desert', 'forest']
