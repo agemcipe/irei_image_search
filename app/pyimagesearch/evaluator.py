@@ -8,9 +8,24 @@ import random
 import config
 
 class Evaluator:
-    def __init__(self, indexPath):
+    def __init__(self, indexPath, lulc_classes=config.LULC_CLASSES_10):
         # store our index path
         self.indexPath = indexPath
+        self.lulc_classes = lulc_classes
+
+        random.seed(42)
+        images_numbers = random.sample(range(100, 200), 10)
+
+        image_names = []
+        for lulc_class, number in [(a, b) for a in self.lulc_classes for b in images_numbers]:
+            if number < 10:
+                num_string = '00' + str(number)
+            elif number < 100:
+                num_string = '0' + str(number)
+            else:
+                num_string = str(number)
+            image_names.append(lulc_class + '_' + num_string + '.jpg')
+        self.image_names = image_names
 
     def evaluate(self, queryFeatures, limit=10, image_in_index=False):
         # initialize Searcher
@@ -47,11 +62,6 @@ class Evaluator:
                 retrieved_classes += self.evaluate(row[1:], limit, image_in_index=image_in_index)
                 actual_classes += [row[0]] * limit
 
-            # # Take stratified sample
-            # for _, row in df.groupby(0, group_keys=False).apply(lambda x: x.sample(min(len(x), class_sample_size))).iterrows():
-            #     retrieved_classes += self.evaluate(row[1:], limit, image_in_index=image_in_index)
-            #     actual_classes += [row[0]] * limit
-
         data = {'class_actual': actual_classes,
                 'class_retrieved': retrieved_classes
                 }
@@ -69,33 +79,24 @@ def strip_classes(results):
 
     return retrieved_classes
 
+
 # The main method is for testing purposes
-# I tried to calculate all descriptors for our image set
-#           to obtain a training set for kmeans (BOV),
-#           but I got a None Error in the middle of something
 if __name__ == '__main__':
-    classes = config.LULC_CLASSES_10
+    descriptor = 'sift'
+    df = None
+    if descriptor == 'color':
+        evaluator = Evaluator('/home/till/PycharmProjects/irei_image_search/app/my_index.csv')
 
-    random.seed(42)
-    images_numbers = random.sample(range(1, 700), 10)
+        df = evaluator.evaluate_all(evaluator.image_names, limit=10, image_in_index=True)
 
-    image_names = []
-    for lulc_class, number in [(a, b) for a in classes for b in images_numbers]:
-        if number < 10:
-            num_string = '00' + str(number)
-        elif number < 100:
-            num_string = '0' + str(number)
-        else:
-            num_string = str(number)
-        image_names.append(lulc_class + '_' + num_string + '.jpg')
+        df.to_csv('evaluation_10_lulc_colordescriptor.csv')
 
-    print(image_names)
+    elif descriptor == 'sift':
+        evaluator = Evaluator('/home/till/PycharmProjects/irei_image_search/app/my_index_lulc_10_1xx.csv')
+        print(evaluator.image_names)
+        df = evaluator.evaluate_all(evaluator.image_names, limit=10, image_in_index=True)
 
-    evaluator = Evaluator('/home/till/PycharmProjects/irei_image_search/app/my_index.csv')
-
-    df = evaluator.evaluate_all(image_names, limit=10, image_in_index=True)
-
-    df.to_csv('evaluation_10_lulc_colordescriptor.csv')
+        df.to_csv('evaluation_10_1xx_lulc_siftdescriptor.csv')
 
     cm = pd.crosstab(df['class_actual'], df['class_retrieved'], rownames=['Actual'], colnames=['Retrieved'])
     sn.heatmap(cm, annot=True)

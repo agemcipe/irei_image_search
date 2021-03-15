@@ -8,3 +8,6 @@ LULC_CLASSES = ['airplane', 'airport', 'baseball_diamond', 'basketball_court', '
 
 LULC_CLASSES_10 = ['industrial_area', 'beach', 'lake', 'circular_farmland', 'sparse_residential',
                    'cloud', 'mountain', 'dense_residential', 'desert', 'forest']
+
+LULC_CLASSES_8 = ['industrial_area', 'beach', 'circular_farmland', 'sparse_residential',
+                   'cloud', 'mountain', 'dense_residential', 'forest']
