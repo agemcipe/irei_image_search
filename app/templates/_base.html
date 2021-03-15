@@ -21,30 +21,40 @@
 </head>
 
 <body>
+  <!-- Page Content -->
+  <div class="container">
 
-    <!-- Page Content -->
-    <div class="container">
-
-      <!-- messages -->
-      {% for message in get_flashed_messages() %}
-        <div class="alert alert-success alert-dismissible" role="alert">
-          <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-          {{ message }}
-        </div>
-      {% endfor %}
-
-      <!-- child template -->
-      {% block content %}{% endblock %}
-      {% block modal %}{% endblock %}
-      
-      <!-- errors -->
-      {% if error %}
-      <p class="error"><strong>Error:</strong> {{ error }}</p>
-      {% endif %}
-
-
+    <!-- messages -->
+    <!-- {% for message in get_flashed_messages() %}
+    <div class="alert alert-success alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span
+          class="sr-only">Close</span></button>
+      {{ message }}
     </div>
-    <!-- /.container -->
+    {% endfor %} -->
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <script>
+      var messages = {{ messages | safe }};
+      for (var i = 0; i < messages.length; i++) {
+        alert(messages[i]);
+      }
+    </script>
+    {% endif %}
+    {% endwith %}
+    <!-- child template -->
+    {% block content %}{% endblock %}
+    {% block modal %}{% endblock %}
+
+    <!-- errors -->
+    {% if error %}
+    <p class="error"><strong>Error:</strong> {{ error }}</p>
+    {% endif %}
+
+
+  </div>
+  <!-- /.container -->
 
 </body>
 

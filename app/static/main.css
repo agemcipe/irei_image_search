@@ -178,3 +178,13 @@ body {
         grid-row-gap: 20px;
     }
 }
+
+.user-options {
+    color: #080F5B;
+    font-weight: bold;
+    font-size: large;
+    text-align: center;
+    margin-top: 15px;
+    margin-bottom: 5px;
+
+}
