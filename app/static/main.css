@@ -178,3 +178,20 @@ body {
         grid-row-gap: 20px;
     }
 }
+
+
+#select-metric {
+    color: #080F5B;
+    font-weight: bold;
+    font-size: 1.25em;
+    text-align: center;
+    margin-top: 15px;
+    margin-bottom: 5px;
+}
+
+#metric {
+    color: #080F5B;
+    font-weight: bold;
+    font-size: 1.25em;
+    text-align: center;
+}
