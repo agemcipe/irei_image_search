@@ -6,8 +6,6 @@ import glob
 import cv2
 import os
 
-IMPLEMENTED_DESCRIPTORS = ["ColorHistogram", "SIFT"]
-
 
 def add_image_to_index(imgPath, index_path, descriptor):
 
@@ -39,9 +37,7 @@ if __name__ == "__main__":
         required=True,
         help="path to the directory that contains the images to be indexed",
     )
-    ap.add_argument(
-        "-i", "--index", required=True, help="path to where the index should be stored"
-    )
+    ap.add_argument("-i", "--index", help="path to where the index should be stored")
     ap.add_argument(
         "-s",
         "--descriptor",

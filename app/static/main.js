@@ -73,7 +73,7 @@ var imageSelectSearch = function (_this) {
   $("#preview-name").text('QUERY: ' + imageName);
   $.ajax({
     url: "/search",
-    data: { img: image, metric: metric },
+    data: { img: image, metric: metric, descriptor: descriptor },
     cache: false,
     dataType: "json",
     type: 'POST',

@@ -15,7 +15,7 @@ class SIFTDescriptor:
         else:
             self.model = pickle.load(open(model_path, "rb"))
             kmeans = KMeans()
-            self.n_clusters = kmeans.get_params()['n_clusters']
+            self.n_clusters = kmeans.get_params()["n_clusters"]
 
     # Return the SIFT description for each keypoint found.
     # Return shape: (k, 128) with k = number of keypoints.
@@ -31,20 +31,21 @@ class SIFTDescriptor:
     # Return shape: (k, 1+128) with k = number of keypoints.
     # Return None if sift_descriptor returns None.
     def get_sift_descriptors_df(self, image_path):
-        image_ID = image_path[image_path.rfind("/") + 1:]
+        image_ID = image_path[image_path.rfind("/") + 1 :]
         image = cv2.imread(image_path)
 
         descriptors = self.sift_descriptor(image)
         if descriptors is None:
-            print('%s has no sift descriptor.' % image_ID)
+            print("%s has no sift descriptor." % image_ID)
             return None
         num_descriptors = descriptors.shape[0]
 
         id_vector = np.repeat([image_ID], num_descriptors, axis=0)
         id_vector.resize((num_descriptors, 1))
         np_dataframe = np.concatenate((id_vector, descriptors), axis=1)
-        df_descriptors = pd.DataFrame(np_dataframe,
-                                          columns=['image_ID'] + list(range(1, 129)))
+        df_descriptors = pd.DataFrame(
+            np_dataframe, columns=["image_ID"] + list(range(1, 129))
+        )
         return df_descriptors
 
     # Make histogram of BOW
@@ -55,7 +56,8 @@ class SIFTDescriptor:
     # Get descriptor (histogram) for query image
     def describe(self, image):
         sift_description = self.sift_descriptor(image)
-        df_sift = pd.DataFrame(sift_description)
+        # print("sift descr:", sift_description)
+        df_sift = pd.DataFrame(sift_description, dtype=float)
         bag_of_words = self.model.predict(df_sift)
 
         hist = self.make_histogram(bag_of_words)
@@ -68,7 +70,7 @@ class SIFTDescriptor:
     def describe_full_data_set(self, image_paths, model_path=None, verbose=False):
         # Create train set of descriptors to fit KMeans on
         if verbose:
-            print('Creating training set for KMeans.')
+            print("Creating training set for KMeans.")
         pool = mp.Pool(mp.cpu_count())
         dfs = pool.map(self.get_sift_descriptors_df, image_paths)
 
@@ -82,38 +84,38 @@ class SIFTDescriptor:
         # Join dfs
         df_descriptors = pd.concat(dfs)
 
-        df_descriptors = df_descriptors.reset_index()
+        df_descriptors = df_descriptors.reset_index(drop=True)
         if verbose:
-            print('Training set ready.')
-            print('Training KMeans.')
+            print("Training set ready.")
+            print("Training KMeans.")
 
         # Train KMeans and predict labels
-        label = self.model.fit_predict(df_descriptors.drop(['image_ID'], axis=1))
+        label = self.model.fit_predict(df_descriptors.drop(["image_ID"], axis=1))
         if verbose:
-            print('KMeans trained.')
+            print("KMeans trained.")
 
         # Free memory but keep image ids
-        image_ids = df_descriptors['image_ID']
+        image_ids = df_descriptors["image_ID"]
         df_descriptors = None
 
         df_bow = pd.concat([image_ids, pd.Series(label)], axis=1)
 
         df_hist_full = None
         for image_ID in image_ids.unique():
-            hist = self.make_histogram(df_bow[df_bow['image_ID'] == image_ID][0])
+            hist = self.make_histogram(df_bow[df_bow["image_ID"] == image_ID][0])
             if df_hist_full is None:
                 df_hist_full = pd.DataFrame([hist])
-                df_hist_full.insert(loc=0, column='image_ID', value=[image_ID])
+                df_hist_full.insert(loc=0, column="image_ID", value=[image_ID])
             else:
                 df_hist_full1 = pd.DataFrame([hist])
-                df_hist_full1.insert(loc=0, column='image_ID', value=[image_ID])
+                df_hist_full1.insert(loc=0, column="image_ID", value=[image_ID])
                 df_hist_full = df_hist_full.append(df_hist_full1)
 
         if model_path is not None:
             pickle.dump(self.model, open(model_path, "wb"))
             if verbose:
-                print('Model saved to %s.' % model_path)
+                print("Model saved to %s." % model_path)
 
         if verbose:
-            print('Index created.')
+            print("Index created.")
         return df_hist_full

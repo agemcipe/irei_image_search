@@ -6,21 +6,29 @@ import numpy as np
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 from werkzeug.utils import secure_filename
 
-
 from pyimagesearch.colordescriptor import ColorDescriptor
+from pyimagesearch.siftdescriptor import SIFTDescriptor
 from pyimagesearch.searcher import Searcher, IMPLEMENTED_METRICS
 from pyimagesearch import IMPLEMENTED_DESCRIPTORS
+
+VERBOSE = False  # only for debugging purposes
+
+
+IMAGE_DIR = os.path.join(os.path.dirname(__file__), "static/images/")
+ALLOWED_EXTENSIONS = {"jpg", "png", "jpeg"}
+DESCRIPTOR_MAP = {"ColorHistogram": "color", "SIFT": "sift"}
+
+############## Helper functions ##############
+def _get_index(descriptor: str):
+    return os.path.join(os.path.dirname(__file__), f"index_{descriptor}.csv")
+
+
+def _allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 # create flask instance
 app = Flask(__name__)
-
-INDEX = os.path.join(os.path.dirname(__file__), "index_color.csv")
-IMAGE_DIR = os.path.join(os.path.dirname(__file__), "static/images/")
-# UPLOAD_IMAGE_DIR = os.path.join(IMAGE_DIR, "upload")
-ALLOWED_EXTENSIONS = {"jpg", "png", "jpeg"}
-
-
 app.config["UPLOAD_FOLDER"] = IMAGE_DIR
 app.config["MAX_CONTENT_PATH"] = 2 ** 10
 app.config["SECRET_KEY"] = "12345"
@@ -67,15 +75,11 @@ def search():
     if request.method == "POST":
 
         RESULTS_ARRAY = []
-
+        descriptor = DESCRIPTOR_MAP[request.form.get("descriptor")]
         # get url
         image_url = request.form.get("img")
 
         try:
-
-            # initialize the image descriptor
-            cd = ColorDescriptor((8, 12, 3))
-
             # load the query image and describe it
             from skimage import io
             import cv2
@@ -83,12 +87,26 @@ def search():
             query = cv2.imread(
                 os.path.join(os.path.dirname(__file__), "static/images/" + image_url)
             )
-            features = cd.describe(query)
+
+            index_used = _get_index(descriptor)
+
+            if descriptor == "color":
+                # initialize the image descriptor
+                descr = ColorDescriptor((8, 12, 3))
+            elif descriptor == "sift":
+                descr = SIFTDescriptor(20, model_path="kmeans_lulc_10.pkl")
+
+            features = descr.describe(query)
 
             # perform the search
-            searcher = Searcher(INDEX)
+            searcher = Searcher(index_used)
 
             metric = request.form.get("metric")
+
+            if VERBOSE:
+                print("descriptor:", descriptor)
+                print("index:", index_used)
+                print("metric:", metric)
             results = searcher.search(features, metric=metric)
 
             # loop over the results, displaying the score and image name
@@ -101,10 +119,6 @@ def search():
             print(str(e))
             # return error
             return jsonify({"sorry": "Sorry, no results! Please try again."}), 500
-
-
-def allowed_file(filename):
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 @app.route("/uploader", methods=["POST"])
@@ -121,7 +135,7 @@ def upload_file():
             flash("No selected file")
             return redirect("/")
             # return redirect(request.url)
-        if file and allowed_file(file.filename):
+        if file and _allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(
                 os.path.join(app.config["UPLOAD_FOLDER"], "__upload_" + filename)
