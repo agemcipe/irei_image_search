@@ -48,19 +48,14 @@ class Evaluator:
 
         # open the index file
         with open(self.indexPath) as f:
-            # initialize the CSV reader
-            reader = csv.reader(f)
-
             retrieved_classes = []
             actual_classes = []
 
             df = pd.read_csv(self.indexPath, header=None)
             df = df[df[0].isin(image_names)]
-            print(df)
             df[0] = df[0].transform(lambda x: x.rsplit('_', 1)[0])
 
             for _, row in df.iterrows():
-                print(row[0])
                 retrieved_classes += self.evaluate(row[1:], limit, image_in_index=image_in_index)
                 actual_classes += [row[0]] * limit
 
@@ -85,14 +80,14 @@ def strip_classes(results):
 # The main method is for testing purposes
 # ToDo: Move to evaluation Jupyter notebook
 if __name__ == '__main__':
-    descriptor = 'sift'
+    descriptor = 'color'
     df = None
     if descriptor == 'color':
         evaluator = Evaluator('/home/till/PycharmProjects/irei_image_search/app/my_index.csv')
 
         df = evaluator.evaluate_all(evaluator.image_names, limit=10, image_in_index=True)
 
-        df.to_csv('evaluation_10_lulc_colordescriptor.csv')
+        df.to_csv('evaluation_10_lulc_700_colordescriptor.csv')
 
     elif descriptor == 'sift':
         evaluator = Evaluator('/home/till/PycharmProjects/irei_image_search/app/my_index_lulc_10_1xx.csv')
