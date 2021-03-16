@@ -1,0 +1,2 @@
+IMPLEMENTED_DESCRIPTORS = ["ColorHistogram", "SIFT"]
+
