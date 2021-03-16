@@ -3,18 +3,22 @@ from sklearn.cluster import KMeans
 import pickle
 import pandas as pd
 import numpy as np
-from tqdm import tqdm
 import multiprocessing as mp
 
 
 class SIFTDescriptor:
+    # Define KMeans settings or load pretrained model.
     def __init__(self, n_clusters=20, model_path=None):
-        self.n_clusters = n_clusters
         if model_path is None:
             self.model = KMeans(n_clusters=self.n_clusters)
+            self.n_clusters = n_clusters
         else:
             self.model = pickle.load(open(model_path, "rb"))
+            kmeans = KMeans()
+            self.n_clusters = kmeans.get_params()['n_clusters']
 
+    # Return the SIFT description for each keypoint found.
+    # Return shape: (k, 128) with k = number of keypoints.
     def sift_descriptor(self, image):
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
@@ -23,6 +27,9 @@ class SIFTDescriptor:
 
         return description
 
+    # Construct dataframe where each row represents 'image_ID' + feature_vector of single keypoint descriptor.
+    # Return shape: (k, 1+128) with k = number of keypoints.
+    # Return None if sift_descriptor returns None.
     def get_sift_descriptors_df(self, image_path):
         image_ID = image_path[image_path.rfind("/") + 1:]
         image = cv2.imread(image_path)
@@ -40,10 +47,12 @@ class SIFTDescriptor:
                                           columns=['image_ID'] + list(range(1, 129)))
         return df_descriptors
 
+    # Make histogram of BOW
     def make_histogram(self, bow):
         hist, _ = np.histogram(bow, bins=self.n_clusters)
         return hist
 
+    # Get descriptor (histogram) for query image
     def describe(self, image):
         sift_description = self.sift_descriptor(image)
         df_sift = pd.DataFrame(sift_description)
@@ -53,14 +62,15 @@ class SIFTDescriptor:
 
         return hist
 
-    def describe_full_data_set(self, image_paths, model_path=None):
-        # create train set of descriptors to fit KMeans on
-        df_descriptors = None
+    # Describe full data set when indexing.
+    # Return data frame where each row = image_id + histogram vector
+    # If model_path is given, save trained KMeans model as pickle.
+    def describe_full_data_set(self, image_paths, model_path=None, verbose=False):
+        # Create train set of descriptors to fit KMeans on
         pool = mp.Pool(mp.cpu_count())
-        # dfs = [pool.apply(self.get_sift_descriptors_df, args=image_path) for image_path in image_paths]
         dfs = pool.map(self.get_sift_descriptors_df, image_paths)
 
-        # Filter for None values
+        # Filter None values
         temp = []
         for df in dfs:
             if df is not None:
@@ -70,35 +80,16 @@ class SIFTDescriptor:
         # Join dfs
         df_descriptors = pd.concat(dfs)
 
-        # for image_path in tqdm(image_paths):
-        #     image_ID = image_path[image_path.rfind("/") + 1:]
-        #     image = cv2.imread(image_path)
-        #
-        #     descriptors = self.sift_descriptor(image)
-        #     if descriptors is None:
-        #         print('%s has no sift descriptor.' % image_ID)
-        #         continue
-        #     num_descriptors = descriptors.shape[0]
-        #
-        #     id_vector = np.repeat([image_ID], num_descriptors, axis=0)
-        #     id_vector.resize((num_descriptors, 1))
-        #     np_dataframe = np.concatenate((id_vector, descriptors), axis=1)
-        #     if df_descriptors is None:
-        #         df_descriptors = pd.DataFrame(np_dataframe,
-        #                                       columns=['image_ID']+list(range(1, 129)))
-        #     else:
-        #         df_descriptors_new = pd.DataFrame(np_dataframe,
-        #                                           columns=['image_ID'] + list(range(1, 129)))
-        #         df_descriptors = df_descriptors.append(df_descriptors_new)
         df_descriptors = df_descriptors.reset_index()
-        print('Training set ready.')
+        if verbose:
+            print('Training set ready.')
 
-        # Train kmeans and predict labels ToDo: Delete duplicate model definition
-        self.model = KMeans(n_clusters=self.n_clusters)
+        # Train KMeans and predict labels
         label = self.model.fit_predict(df_descriptors.drop(['image_ID'], axis=1))
-        print('KMeans trained.')
+        if verbose:
+            print('KMeans trained.')
 
-        # Free memory
+        # Free memory but keep image ids
         image_ids = df_descriptors['image_ID']
         df_descriptors = None
 
@@ -117,22 +108,9 @@ class SIFTDescriptor:
 
         if model_path is not None:
             pickle.dump(self.model, open(model_path, "wb"))
+            if verbose:
+                print('Model saved to %s.' % model_path)
 
-        print('Index created.')
+        if verbose:
+            print('Index created.')
         return df_hist_full
-
-
-# Some development code. ToDo: Delete for production
-if __name__ == '__main__':
-    image_paths = ['/home/till/PycharmProjects/irei_image_search/app/input/airplane/airplane_001.jpg',
-                   '/home/till/PycharmProjects/irei_image_search/app/input/airplane/airplane_002.jpg',
-                   '/home/till/PycharmProjects/irei_image_search/app/input/airplane/airplane_003.jpg',
-                   '/home/till/PycharmProjects/irei_image_search/app/input/airplane/airplane_004.jpg',
-                   '/home/till/PycharmProjects/irei_image_search/app/input/airplane/airplane_005.jpg']
-
-    sift_descriptor = SIFTDescriptor(20)
-
-    df = sift_descriptor.describe_full_data_set(image_paths)
-    print(df.shape[0])
-
-    print(df)
