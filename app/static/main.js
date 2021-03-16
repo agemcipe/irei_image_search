@@ -27,6 +27,23 @@ var getAllImages = function () {
   });
 }
 
+// request to save uploaded image to index
+
+var saveImageToIndex = function () {
+
+  $.ajax({
+    url: "/search",
+    data: { img: image, metric: metric },
+    cache: false,
+    dataType: "json",
+    type: 'POST',
+    success: "success",
+    error: function (error) {
+      console.log(error.toString());
+    }
+  });
+}
+
 // displays images in modal
 var displayModalImages = function (imgList) {
 
@@ -50,6 +67,8 @@ var imageSelectSearch = function (_this) {
   var imageName = image.split('.')[0];
 
   var metric = document.getElementById("metric").value;
+  var descriptor = document.getElementById("descriptor").value;
+  // var addToIndexFlag = document.getElementById("addToIndexFlag").value;
 
   $("#preview-name").text('QUERY: ' + imageName);
   $.ajax({

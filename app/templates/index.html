@@ -24,6 +24,15 @@
           {% endfor %}
         </select>
       </div>
+      <div class="user-options" id="select-metric">
+        <div>Choose Descriptor</div>
+        <select id="metric">
+          <!--  name=metrics, method="GET" action="/"  -->
+          {% for descr in descriptors %}
+          <option value="{{  descr  }}" {% if metric=="ColorHistorgram" %} selected {% endif %}>{{ descr }}</option>"
+          {% endfor %}
+        </select>
+      </div>
       <div class="user-options">
         <div>Upload Image</div>
         <form method="post" enctype="multipart/form-data" , action="/uploader">

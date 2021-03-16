@@ -8,7 +8,11 @@ from werkzeug.utils import secure_filename
 
 
 from pyimagesearch.colordescriptor import ColorDescriptor
-from pyimagesearch.searcher import Searcher, IMPLEMENTED_METRICS
+from pyimagesearch.searcher import (
+    Searcher,
+    IMPLEMENTED_METRICS,
+    IMPLEMENTED_DESCRIPTORS,
+)
 
 
 # create flask instance
@@ -29,7 +33,10 @@ app.config["SECRET_KEY"] = "12345"
 @app.route("/", methods=["GET", "POST"])
 def index():
     return render_template(
-        "index.html", preview="static/init-preview.png", metrics=IMPLEMENTED_METRICS
+        "index.html",
+        preview="static/init-preview.png",
+        metrics=IMPLEMENTED_METRICS,
+        descriptors=IMPLEMENTED_DESCRIPTORS,
     )
 
 

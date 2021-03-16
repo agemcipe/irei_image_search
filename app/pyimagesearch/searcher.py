@@ -4,6 +4,7 @@ import csv
 import scipy.spatial.distance
 
 IMPLEMENTED_METRICS = ["chi2", "canberra"]
+IMPLEMENTED_DESCRIPTORS = ["ColorHistorgram"]
 
 
 class Searcher:
