@@ -66,4 +66,4 @@ elif args["descriptor"] == 'sift':
 
     index = sd.describe_full_data_set(files_grabbed, 'kmeans_lulc_10_1xx.pkl')
 
-    index.to_csv(args["index"])
+    index.to_csv(args["index"], header=False, index=False)

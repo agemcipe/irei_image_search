@@ -7,14 +7,16 @@ import matplotlib.pyplot as plt
 import random
 import config
 
+
 class Evaluator:
     def __init__(self, indexPath, lulc_classes=config.LULC_CLASSES_10):
-        # store our index path
+        # store index path
         self.indexPath = indexPath
         self.lulc_classes = lulc_classes
 
+        # Create 'random' test set
         random.seed(42)
-        images_numbers = random.sample(range(100, 200), 10)
+        images_numbers = random.sample(range(100, 200), 10)  # ToDo: Avoid hard coding of test set range.
 
         image_names = []
         for lulc_class, number in [(a, b) for a in self.lulc_classes for b in images_numbers]:
@@ -81,6 +83,7 @@ def strip_classes(results):
 
 
 # The main method is for testing purposes
+# ToDo: Move to evaluation Jupyter notebook
 if __name__ == '__main__':
     descriptor = 'sift'
     df = None
