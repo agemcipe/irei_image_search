@@ -14,7 +14,7 @@ from pyimagesearch.searcher import Searcher, IMPLEMENTED_METRICS
 # create flask instance
 app = Flask(__name__)
 
-INDEX = os.path.join(os.path.dirname(__file__), "index.csv")
+INDEX = os.path.join(os.path.dirname(__file__), "index_color.csv")
 IMAGE_DIR = os.path.join(os.path.dirname(__file__), "static/images/")
 # UPLOAD_IMAGE_DIR = os.path.join(IMAGE_DIR, "upload")
 ALLOWED_EXTENSIONS = {"jpg", "png", "jpeg"}

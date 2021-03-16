@@ -1,22 +1,21 @@
 # import the necessary packages
 import pandas as pd
-import csv
 from searcher import Searcher
 import seaborn as sn
 import matplotlib.pyplot as plt
 import random
-import config
 
 
 class Evaluator:
-    def __init__(self, indexPath, lulc_classes=config.LULC_CLASSES_10):
+    def __init__(self, indexPath):
         # store index path
         self.indexPath = indexPath
-        self.lulc_classes = lulc_classes
+        self.lulc_classes = ['industrial_area', 'beach', 'lake', 'circular_farmland', 'sparse_residential',
+                   'cloud', 'mountain', 'dense_residential', 'desert', 'forest']
 
         # Create 'random' test set
         random.seed(42)
-        images_numbers = random.sample(range(100, 200), 10)  # ToDo: Avoid hard coding of test set range.
+        images_numbers = random.sample(range(1, 101), 10)  # For test purposes hardcoded.
 
         image_names = []
         for lulc_class, number in [(a, b) for a in self.lulc_classes for b in images_numbers]:
@@ -80,21 +79,20 @@ def strip_classes(results):
 # The main method is for testing purposes
 # ToDo: Move to evaluation Jupyter notebook
 if __name__ == '__main__':
-    descriptor = 'color'
+    descriptor = 'sift'
     df = None
     if descriptor == 'color':
-        evaluator = Evaluator('/home/till/PycharmProjects/irei_image_search/app/my_index.csv')
+        evaluator = Evaluator('/home/till/PycharmProjects/irei_image_search2/app/index_color.csv')
 
         df = evaluator.evaluate_all(evaluator.image_names, limit=10, image_in_index=True)
 
-        df.to_csv('evaluation_10_lulc_700_colordescriptor.csv')
+        df.to_csv('evaluation_10_colordescriptor.csv')
 
     elif descriptor == 'sift':
-        evaluator = Evaluator('/home/till/PycharmProjects/irei_image_search/app/my_index_lulc_10_1xx.csv')
-        print(evaluator.image_names)
+        evaluator = Evaluator('/home/till/PycharmProjects/irei_image_search2/app/index_sift.csv')
         df = evaluator.evaluate_all(evaluator.image_names, limit=10, image_in_index=True)
 
-        df.to_csv('evaluation_10_1xx_lulc_siftdescriptor.csv')
+        df.to_csv('evaluation_10_siftdescriptor.csv')
 
     cm = pd.crosstab(df['class_actual'], df['class_retrieved'], rownames=['Actual'], colnames=['Retrieved'])
     sn.heatmap(cm, annot=True)

@@ -10,7 +10,7 @@ class SIFTDescriptor:
     # Define KMeans settings or load pretrained model.
     def __init__(self, n_clusters=20, model_path=None):
         if model_path is None:
-            self.model = KMeans(n_clusters=self.n_clusters)
+            self.model = KMeans(n_clusters=n_clusters)
             self.n_clusters = n_clusters
         else:
             self.model = pickle.load(open(model_path, "rb"))
@@ -67,6 +67,8 @@ class SIFTDescriptor:
     # If model_path is given, save trained KMeans model as pickle.
     def describe_full_data_set(self, image_paths, model_path=None, verbose=False):
         # Create train set of descriptors to fit KMeans on
+        if verbose:
+            print('Creating training set for KMeans.')
         pool = mp.Pool(mp.cpu_count())
         dfs = pool.map(self.get_sift_descriptors_df, image_paths)
 
@@ -83,6 +85,7 @@ class SIFTDescriptor:
         df_descriptors = df_descriptors.reset_index()
         if verbose:
             print('Training set ready.')
+            print('Training KMeans.')
 
         # Train KMeans and predict labels
         label = self.model.fit_predict(df_descriptors.drop(['image_ID'], axis=1))
