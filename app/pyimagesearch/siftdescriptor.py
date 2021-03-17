@@ -50,7 +50,8 @@ class SIFTDescriptor:
 
     # Make histogram of BOW
     def make_histogram(self, bow):
-        hist, _ = np.histogram(bow, bins=self.n_clusters)
+        hist, _ = np.histogram(bow, bins=200)
+        # hist, _ = np.histogram(bow, bins=self.n_clusters)
         return hist
 
     # Get descriptor (histogram) for query image
@@ -67,7 +68,9 @@ class SIFTDescriptor:
     # Describe full data set when indexing.
     # Return data frame where each row = image_id + histogram vector
     # If model_path is given, save trained KMeans model as pickle.
-    def describe_full_data_set(self, image_paths, model_path=None, verbose=False, use_precomputed_set=None):
+    def describe_full_data_set(
+        self, image_paths, model_path=None, verbose=False, use_precomputed_set=None
+    ):
         if use_precomputed_set is None:
             # Create train set of descriptors to fit KMeans on
             if verbose:

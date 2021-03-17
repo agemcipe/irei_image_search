@@ -1,8 +1,7 @@
-# Image-Search-Engine
-Content-Based Image Retrieval System Implemented Using Python, Flask And OpenCV.
-* Given a query image, this app returns other images from database in order of similar color content.
-* Uses a color histogram to define the color content of an image, uses chi-squared distance to determine
-how similar two image histograms are.
+# Toy Image-Search-Engine
+Content-Based Image Retrieval System for Satellite Images Implemented Using Python, Flask And OpenCV.
+* Given a query image, this app returns other images from a directory that are similar.
+* "Similarity" is either based on the description of an image with a color histogram or with [SIFT](https://en.wikipedia.org/wiki/Scale-invariant_feature_transform) features. The distance can be calculated using the chi-squared or canberra distance.
 
 ## Usage Guide
 1. To use a different image dataset (optional)
@@ -13,7 +12,7 @@ how similar two image histograms are.
       >> source venv/bin/activate
       >> pip install -r requirements.txt
       >> cd app
-      >> python index.py --dataset static/images --index index.csv
+      >> python index.py --dataset static/images --descriptor color --index index_color.csv
       ```
 
 2. Run locally using Docker
@@ -25,11 +24,5 @@ how similar two image histograms are.
       ```
 * You should be able to access app at `localhost:80` in browser
 
-
-### Sources
-* [pyimagesearch.com](https://www.pyimagesearch.com/start-here-learn-computer-vision-opencv/)
-* [flask docs](http://flask.pocoo.org)
-* [content-based image retrieval](https://en.wikipedia.org/wiki/Content-based_image_retrieval)
-
-
-Project was made possible thanks to the many guides provided by [@Adrian Rosebrock](https://twitter.com/pyimagesearch) on [pyimagesearch.com](https://www.pyimagesearch.com/start-here-learn-computer-vision-opencv/)
+### Credits
+Project is based on the work of Kene Udeh and the original work can be found [here])(https://github.com/fatemaquaid987/Content_Based_Image_Retrieval)
