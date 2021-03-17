@@ -8,7 +8,7 @@ import multiprocessing as mp
 
 class SIFTDescriptor:
     # Define KMeans settings or load pretrained model.
-    def __init__(self, n_clusters=20, model_path=None):
+    def __init__(self, n_clusters=200, model_path=None):
         if model_path is None:
             self.model = KMeans(n_clusters=n_clusters)
             self.n_clusters = n_clusters
@@ -67,24 +67,28 @@ class SIFTDescriptor:
     # Describe full data set when indexing.
     # Return data frame where each row = image_id + histogram vector
     # If model_path is given, save trained KMeans model as pickle.
-    def describe_full_data_set(self, image_paths, model_path=None, verbose=False):
-        # Create train set of descriptors to fit KMeans on
-        if verbose:
-            print("Creating training set for KMeans.")
-        pool = mp.Pool(mp.cpu_count())
-        dfs = pool.map(self.get_sift_descriptors_df, image_paths)
+    def describe_full_data_set(self, image_paths, model_path=None, verbose=False, use_precomputed_set=None):
+        if use_precomputed_set is None:
+            # Create train set of descriptors to fit KMeans on
+            if verbose:
+                print("Creating training set for KMeans.")
+            pool = mp.Pool(mp.cpu_count())
+            dfs = pool.map(self.get_sift_descriptors_df, image_paths)
 
-        # Filter None values
-        temp = []
-        for df in dfs:
-            if df is not None:
-                temp.append(df)
-        dfs = temp
+            # Filter None values
+            temp = []
+            for df in dfs:
+                if df is not None:
+                    temp.append(df)
+            dfs = temp
 
-        # Join dfs
-        df_descriptors = pd.concat(dfs)
+            # Join dfs
+            df_descriptors = pd.concat(dfs)
 
-        df_descriptors = df_descriptors.reset_index(drop=True)
+            df_descriptors = df_descriptors.reset_index(drop=True)
+        else:
+            df_descriptors = use_precomputed_set
+
         if verbose:
             print("Training set ready.")
             print("Training KMeans.")
