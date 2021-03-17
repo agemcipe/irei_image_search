@@ -11,7 +11,7 @@ from pyimagesearch.siftdescriptor import SIFTDescriptor
 from pyimagesearch.searcher import Searcher, IMPLEMENTED_METRICS
 from pyimagesearch import IMPLEMENTED_DESCRIPTORS
 
-VERBOSE = False  # only for debugging purposes
+VERBOSE = True  # only for debugging purposes
 
 
 IMAGE_DIR = os.path.join(os.path.dirname(__file__), "static/images/")
@@ -94,7 +94,9 @@ def search():
                 # initialize the image descriptor
                 descr = ColorDescriptor((8, 12, 3))
             elif descriptor == "sift":
-                descr = SIFTDescriptor(20, model_path="kmeans_lulc_10.pkl")
+                descr = SIFTDescriptor(200, model_path="kmeans_lulc_10.pkl")
+            else:
+                print(f"Unknown descriptor '{descriptor}'")
 
             features = descr.describe(query)
 
@@ -104,9 +106,12 @@ def search():
             metric = request.form.get("metric")
 
             if VERBOSE:
+                print("-------- Search --------")
+                # print("query image:", image_url)
                 print("descriptor:", descriptor)
                 print("index:", index_used)
                 print("metric:", metric)
+                # print("features:", features)
             results = searcher.search(features, metric=metric)
 
             # loop over the results, displaying the score and image name
