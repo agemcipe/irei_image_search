@@ -5,6 +5,7 @@ import seaborn as sn
 import matplotlib.pyplot as plt
 import random
 from sklearn.metrics import precision_score
+import argparse
 
 
 class Evaluator:
@@ -78,28 +79,20 @@ def strip_classes(results):
 
 
 # The main method is for testing purposes
-# ToDo: Move to evaluation Jupyter notebook
 if __name__ == '__main__':
-    descriptor = 'sift'
-    df = None
-    if descriptor == 'color':
-        evaluator = Evaluator('/home/till/PycharmProjects/irei_image_search2/app/index_color.csv')
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-i",
+                    "--index",
+                    required=True,
+                    help="path to the index that should be evaluated")
+    args = vars(ap.parse_args())
 
-        df = evaluator.evaluate_all(evaluator.image_names, limit=10, image_in_index=True)
+    evaluator = Evaluator(args['index'])
 
-        df.to_csv('evaluation_10_colordescriptor.csv')
+    df = evaluator.evaluate_all(evaluator.image_names, limit=10, image_in_index=True)
 
-        prec = precision_score(df['class_actual'], df['class_retrieved'], average='weighted')
-        print('Precision: %s' % prec)
-
-    elif descriptor == 'sift':
-        evaluator = Evaluator('/home/till/PycharmProjects/irei_image_search2/app/index_sift.csv')
-        df = evaluator.evaluate_all(evaluator.image_names, limit=10, image_in_index=True)
-
-        df.to_csv('evaluation_200_siftdescriptor.csv')
-
-        prec = precision_score(df['class_actual'], df['class_retrieved'], average='weighted')
-        print('Precision: %s' % prec)
+    prec = precision_score(df['class_actual'], df['class_retrieved'], average='weighted')
+    print('Precision: %s' % prec)
 
     cm = pd.crosstab(df['class_actual'], df['class_retrieved'], rownames=['Actual'], colnames=['Retrieved'])
     sn.heatmap(cm, annot=True)
